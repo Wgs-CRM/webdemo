@@ -1,0 +1,1653 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema bdmele
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema bdmele
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `bdmele` DEFAULT CHARACTER SET utf8 ;
+USE `bdmele` ;
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_User`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_User` (
+  `UserName` VARCHAR(50) NOT NULL,
+  `FullName` VARCHAR(100) NULL,
+  `State` INT NULL,
+  `LicenseType` INT NULL,
+  `AuthenticationEmail` VARCHAR(250) NULL,
+  `ContactEmail` VARCHAR(250) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `SunatTable02` VARCHAR(20) NULL,
+  `Password` VARCHAR(50) NULL,
+  `VatRegistration` VARCHAR(20) NULL,
+  `FirstName` VARCHAR(100) NULL,
+  PRIMARY KEY (`UserName`),
+  UNIQUE INDEX `UserName_UNIQUE` (`UserName` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Schedules`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Schedules` (
+  `Code` VARCHAR(50) NOT NULL,
+  `Begin` TIME NULL,
+  `End` TIME NULL,
+  `HoursWork` INT NULL,
+  `Break` TIME NULL,
+  `Schedule` VARCHAR(50) NULL,
+  `Wait` TIME NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_UserSetup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_UserSetup` (
+  `UserID` VARCHAR(50) NOT NULL,
+  `AllowPostingFrom` DATE NULL,
+  `AllowPostingTo` DATE NULL,
+  `SalesPersonPurchCode` VARCHAR(20) NULL,
+  `ApproverID` VARCHAR(50) NULL,
+  `Email` VARCHAR(100) NULL,
+  `PhoneNo` VARCHAR(30) NULL,
+  `LicenseType` INT NULL,
+  `ScheduleCode` VARCHAR(50) NULL,
+  PRIMARY KEY (`UserID`),
+  UNIQUE INDEX `UserID_UNIQUE` (`UserID` ASC) VISIBLE,
+  INDEX `ScheduleCode_idx` (`ScheduleCode` ASC) VISIBLE,
+  CONSTRAINT `ScheduleCode_UserSetup`
+    FOREIGN KEY (`ScheduleCode`)
+    REFERENCES `bdmele`.`TB_Schedules` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UserID_userSetup`
+    FOREIGN KEY (`UserID`)
+    REFERENCES `bdmele`.`TB_User` (`UserName`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Attendance`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Attendance` (
+  `No` VARCHAR(20) NOT NULL,
+  `UserID` VARCHAR(50) NOT NULL,
+  `DateRegister` DATE NULL,
+  `StartDate` DATE NULL,
+  `StartTime` TIME NULL,
+  `EndDate` DATE NULL,
+  `EndTime` TIME NULL,
+  `Status` VARCHAR(5) NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `UserID_idx` (`UserID` ASC) VISIBLE,
+  CONSTRAINT `UserID_Attendance`
+    FOREIGN KEY (`UserID`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Currency`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Currency` (
+  `Code` VARCHAR(10) NOT NULL,
+  `ISOCode` VARCHAR(3) NULL,
+  `Description` VARCHAR(30) NULL,
+  `AmountDecimalPlaces` VARCHAR(5) NULL,
+  `Symbol` VARCHAR(10) NULL,
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ConfigTable`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ConfigTable` (
+  `TableIdentification` VARCHAR(20) NOT NULL,
+  `TableDescription` VARCHAR(200) NULL,
+  PRIMARY KEY (`TableIdentification`),
+  UNIQUE INDEX `TableIdentification_UNIQUE` (`TableIdentification` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ConfigValueTable`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ConfigValueTable` (
+  `ValueCode` VARCHAR(20) NOT NULL,
+  `TableIdentification` VARCHAR(20) NOT NULL,
+  `ValueDescription` VARCHAR(200) NULL,
+  `ValueDescription2` VARCHAR(200) NULL,
+  PRIMARY KEY (`ValueCode`, `TableIdentification`),
+  CONSTRAINT `TableIdentification_ConfigValueTable`
+    FOREIGN KEY (`TableIdentification`)
+    REFERENCES `bdmele`.`TB_ConfigTable` (`TableIdentification`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_GLAccount`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_GLAccount` (
+  `No` VARCHAR(20) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `SearchName` VARCHAR(100) NULL,
+  `AccounType` TINYINT NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_CustomerPostingGroup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_CustomerPostingGroup` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `GLAccountPrepmt` VARCHAR(20) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE,
+  INDEX `GLAccount_CustPostingGroup_idx` (`GLAccountPrepmt` ASC) VISIBLE,
+  CONSTRAINT `GLAccount_CustPostingGroup`
+    FOREIGN KEY (`GLAccountPrepmt`)
+    REFERENCES `bdmele`.`TB_GLAccount` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_NoSerie`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_NoSerie` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `DefaultNos` TINYINT NULL,
+  `ManualNos` TINYINT NULL,
+  `InternalDoc` TINYINT NULL,
+  `ElectronicDoc` TINYINT NULL,
+  `SunatTable10` VARCHAR(20) NULL,
+  `StartingNo` VARCHAR(20) NULL,
+  `EndingNo` VARCHAR(20) NULL,
+  `LastNoUsed` VARCHAR(20) NULL,
+  `Status` TINYINT NULL,
+  PRIMARY KEY (`Code`),
+  CONSTRAINT `SunatTable10_NoSerie`
+    FOREIGN KEY (`SunatTable10`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_CountryRegion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_CountryRegion` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Name` VARCHAR(50) NULL,
+  `ISOCode` VARCHAR(10) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ShipmetMethod`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ShipmetMethod` (
+  `ShipmetMethodCode` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  PRIMARY KEY (`ShipmetMethodCode`),
+  UNIQUE INDEX `ShipmetMethodCode_UNIQUE` (`ShipmetMethodCode` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Customer`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Customer` (
+  `No` VARCHAR(20) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `Name2` VARCHAR(100) NULL,
+  `Address` VARCHAR(100) NULL,
+  `Address2` VARCHAR(100) NULL,
+  `Departament` VARCHAR(50) NULL,
+  `Province` VARCHAR(50) NULL,
+  `Distrit` VARCHAR(50) NULL,
+  `City` VARCHAR(50) NULL,
+  `VatRegistration` VARCHAR(20) NULL,
+  `Email` VARCHAR(100) NULL,
+  `Phone` VARCHAR(50) NULL,
+  `LimitedCredit` DECIMAL NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `CreditAmount` DECIMAL NULL,
+  `DebitAmount` DECIMAL NULL,
+  `Balance` DECIMAL NULL,
+  `Image` BLOB NULL,
+  `Image2` BLOB NULL,
+  `SunatTable02` VARCHAR(20) NULL,
+  `CustomerPostingGroup` VARCHAR(20) NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `ShipmetMethodCode` VARCHAR(10) NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `CurrencyCode_Customer_idx` (`CurrencyCode` ASC) INVISIBLE,
+  INDEX `SunatTable02_Customer_idx` (`SunatTable02` ASC) VISIBLE,
+  INDEX `CustomerPostingGroup_Customer_idx` (`CustomerPostingGroup` ASC) INVISIBLE,
+  INDEX `NoSeries_Customer_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `CountryRegionCode_Customer_idx` (`CountryRegionCode` ASC) VISIBLE,
+  INDEX `ShipmetMethodCode_Customer_idx` (`ShipmetMethodCode` ASC) VISIBLE,
+  CONSTRAINT `CurrencyCode_Customer`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SunatTable02_Customer`
+    FOREIGN KEY (`SunatTable02`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CustomerPostingGroup_Customer`
+    FOREIGN KEY (`CustomerPostingGroup`)
+    REFERENCES `bdmele`.`TB_CustomerPostingGroup` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_Customer`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_Customer`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ShipmetMethodCode_Customer`
+    FOREIGN KEY (`ShipmetMethodCode`)
+    REFERENCES `bdmele`.`TB_ShipmetMethod` (`ShipmetMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_PostCode`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_PostCode` (
+  `Code` VARCHAR(20) NOT NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `City` VARCHAR(50) NULL,
+  `County` VARCHAR(50) NULL,
+  `ZoneType` INT NOT NULL,
+  PRIMARY KEY (`Code`, `ZoneType`),
+  INDEX `CountryRegionCode_PostCode_idx` (`CountryRegionCode` ASC) VISIBLE,
+  CONSTRAINT `CountryRegionCode_PostCode`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_VendorPostingGroup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_VendorPostingGroup` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_InventoryPostingGroup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_InventoryPostingGroup` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ServiceType`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ServiceType` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `Blocked` TINYINT NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Vendor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Vendor` (
+  `No` VARCHAR(20) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `Name2` VARCHAR(100) NULL,
+  `Address` VARCHAR(100) NULL,
+  `Address2` VARCHAR(100) NULL,
+  `Departament` VARCHAR(50) NULL,
+  `Province` VARCHAR(50) NULL,
+  `Distrit` VARCHAR(50) NULL,
+  `City` VARCHAR(50) NULL,
+  `VatRegistration` VARCHAR(20) NULL,
+  `Email` VARCHAR(100) NULL,
+  `Phone` VARCHAR(50) NULL,
+  `LimitedCredit` DECIMAL NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `CreditAmount` DECIMAL NULL,
+  `DebitAmount` DECIMAL NULL,
+  `Balance` DECIMAL NULL,
+  `Image` BLOB NULL,
+  `Image2` BLOB NULL,
+  `SunatTable02` VARCHAR(20) NULL,
+  `ContributtorType` INT NULL,
+  `Employee` TINYINT NULL,
+  `VendorPostingGroup` VARCHAR(20) NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `ServiceTypeCode` VARCHAR(10) NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `CurrencyCode_idx` (`CurrencyCode` ASC) INVISIBLE,
+  INDEX `SunatTable02_idx` (`SunatTable02` ASC) VISIBLE,
+  INDEX `NoSeries_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `CountryRegionCode_idx` (`CountryRegionCode` ASC) VISIBLE,
+  INDEX `VendorPostingGroup_idx` (`VendorPostingGroup` ASC) INVISIBLE,
+  INDEX `ServiceType_Vendor_idx` (`ServiceTypeCode` ASC) VISIBLE,
+  CONSTRAINT `CurrencyCode_Vendor`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SunatTable02_Vendor`
+    FOREIGN KEY (`SunatTable02`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_Vendor`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_Vendor`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VendorPostingGroup_Vendor`
+    FOREIGN KEY (`VendorPostingGroup`)
+    REFERENCES `bdmele`.`TB_VendorPostingGroup` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ServiceType_Vendor`
+    FOREIGN KEY (`ServiceTypeCode`)
+    REFERENCES `bdmele`.`TB_ServiceType` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_UnitOfMeasure`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_UnitOfMeasure` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(50) NULL,
+  `Symbol` VARCHAR(10) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ItemCategory`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ItemCategory` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_RoutingHeader`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_RoutingHeader` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `Description2` VARCHAR(100) NULL,
+  `Status` INT NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Location`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Location` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `Name2` VARCHAR(100) NULL,
+  `Address` VARCHAR(100) NULL,
+  `Address2` VARCHAR(100) NULL,
+  `Departament` VARCHAR(50) NULL,
+  `Province` VARCHAR(50) NULL,
+  `Distrit` VARCHAR(50) NULL,
+  `City` VARCHAR(50) NULL,
+  `PhoneNo` VARCHAR(30) NULL,
+  `PhoneNo2` VARCHAR(30) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) INVISIBLE,
+  CONSTRAINT `CountryRegionCode_Location`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Item`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Item` (
+  `No` VARCHAR(20) NOT NULL,
+  `No2` VARCHAR(20) NULL,
+  `Description` VARCHAR(150) NULL,
+  `Description2` VARCHAR(150) NULL,
+  `BaseUnitofMeasure` VARCHAR(20) NULL,
+  `UnitPrice` DECIMAL NULL,
+  `UnitCost` DECIMAL NULL,
+  `CostingMethod` INT NULL,
+  `VendorNo` VARCHAR(20) NULL,
+  `Inventory` DECIMAL NULL,
+  `MaxInventory` DECIMAL NULL,
+  `Picture` LONGBLOB NULL,
+  `Picture2` BLOB NULL,
+  `LoteNo` VARCHAR(20) NULL,
+  `Type` INT NULL,
+  `InventoryPostingGroup` VARCHAR(20) NULL,
+  `AllowInvoceDiscount` TINYINT NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `SalesUnitOfMeasure` VARCHAR(20) NULL,
+  `PurchUnitOfMeasure` VARCHAR(20) NULL,
+  `RoutingNo` VARCHAR(20) NULL,
+  `ItemCategoryCode` VARCHAR(20) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `LocationCode` VARCHAR(20) NULL,
+  `InvetoryType` INT NULL,
+  `Blocked` TINYINT NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `VendorNo_idx` (`VendorNo` ASC) INVISIBLE,
+  INDEX `InventoryPostingGroup_idx` (`InventoryPostingGroup` ASC) VISIBLE,
+  INDEX `PurchUnitOfMeasure_idx` (`PurchUnitOfMeasure` ASC) INVISIBLE,
+  INDEX `CountryRegionCode_idx` (`CountryRegionCode` ASC) VISIBLE,
+  INDEX `RoutingNo_idx` (`RoutingNo` ASC) VISIBLE,
+  INDEX `ItemCategoryCode_UNIQUE` (`ItemCategoryCode` ASC) INVISIBLE,
+  INDEX `SalesUnitOfMeasure_UNIQUE` (`SalesUnitOfMeasure` ASC) INVISIBLE,
+  INDEX `NoSeries_UNIQUE` (`NoSeries` ASC) INVISIBLE,
+  INDEX `BaseUnitofMeasure_UNIQUE` (`BaseUnitofMeasure` ASC) VISIBLE,
+  INDEX `LocationCode_Item_idx` (`LocationCode` ASC) VISIBLE,
+  CONSTRAINT `VendorNo_Item`
+    FOREIGN KEY (`VendorNo`)
+    REFERENCES `bdmele`.`TB_Vendor` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `InventoryPostingGroup_Item`
+    FOREIGN KEY (`InventoryPostingGroup`)
+    REFERENCES `bdmele`.`TB_InventoryPostingGroup` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_Item`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SalesUnitOfMeasure_Item`
+    FOREIGN KEY (`SalesUnitOfMeasure`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PurchUnitOfMeasure_Item`
+    FOREIGN KEY (`PurchUnitOfMeasure`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_Item`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ItemCategoryCode_Item`
+    FOREIGN KEY (`ItemCategoryCode`)
+    REFERENCES `bdmele`.`TB_ItemCategory` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `RoutingNo_Item`
+    FOREIGN KEY (`RoutingNo`)
+    REFERENCES `bdmele`.`TB_RoutingHeader` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BaseUnitofMeasure_Item`
+    FOREIGN KEY (`BaseUnitofMeasure`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_Item`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_PaymentTerms`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_PaymentTerms` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `DueDateCalculation` VARCHAR(30) NULL,
+  `Type` INT NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Contract`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Contract` (
+  `No` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `CustomerNo` VARCHAR(20) NULL,
+  `ContractType` INT NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `Status` INT NULL,
+  `ShippingDate` DATE NULL,
+  `PaymentTermsCode` VARCHAR(10) NULL,
+  `Amount` DECIMAL NULL,
+  `Balance` DECIMAL NULL,
+  `PrePaymentAmount` DECIMAL NULL,
+  `UserID` VARCHAR(50) NULL,
+  `PostingDate` DATE NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `CustomerNo_idx` (`CustomerNo` ASC) VISIBLE,
+  INDEX `CustomerNo_UNIQUE` (`CustomerNo` ASC) VISIBLE,
+  INDEX `CurrencyCode_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `PaymentTermsCode_idx` (`PaymentTermsCode` ASC) VISIBLE,
+  INDEX `UserID_Contract_idx` (`UserID` ASC) VISIBLE,
+  CONSTRAINT `CustomerNo_Contract`
+    FOREIGN KEY (`CustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_Contract`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PaymentTermsCode_Contract`
+    FOREIGN KEY (`PaymentTermsCode`)
+    REFERENCES `bdmele`.`TB_PaymentTerms` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UserID_Contract`
+    FOREIGN KEY (`UserID`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesPersonPurch`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesPersonPurch` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Name` VARCHAR(50) NULL,
+  `CommissionPercent` DECIMAL NULL,
+  `Image` BLOB NULL,
+  `Email` VARCHAR(100) NULL,
+  `PhoneNo` VARCHAR(30) NULL,
+  `Blocked` TINYINT NULL,
+  PRIMARY KEY (`Code`),
+  UNIQUE INDEX `Code_UNIQUE` (`Code` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_PaymentMethod`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_PaymentMethod` (
+  `PaymentMethodCode` VARCHAR(10) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  PRIMARY KEY (`PaymentMethodCode`),
+  UNIQUE INDEX `PaymentMethodCode_UNIQUE` (`PaymentMethodCode` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesHeader`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesHeader` (
+  `DocumentType` INT NOT NULL,
+  `No` VARCHAR(20) NOT NULL,
+  `SellToCustomerNo` VARCHAR(20) NOT NULL,
+  `BillToCustomerNo` VARCHAR(20) NULL,
+  `YourReference` VARCHAR(50) NULL,
+  `ShipToCode` VARCHAR(10) NULL,
+  `ShipToName` VARCHAR(100) NULL,
+  `ShipToName2` VARCHAR(100) NULL,
+  `ShipToAddress` VARCHAR(100) NULL,
+  `ShipToAddress2` VARCHAR(100) NULL,
+  `ShipToCity` VARCHAR(30) NULL,
+  `ShipToContact` VARCHAR(100) NULL,
+  `OrderDate` DATE NULL,
+  `PostingDate` DATE NULL,
+  `Documentdate` DATE NULL,
+  `ShipmentDate` DATE NULL,
+  `DueDate` DATE NULL,
+  `PostingDescription` VARCHAR(100) NULL,
+  `PaymentTermCode` VARCHAR(10) NULL,
+  `ShipmentMethodCode` VARCHAR(10) NULL,
+  `LocationCode` VARCHAR(10) NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `CurrencyFactor` DECIMAL NULL,
+  `SalesPersonCode` VARCHAR(20) NULL,
+  `Ship` TINYINT NULL,
+  `Invoice` TINYINT NULL,
+  `Amount` DECIMAL NULL,
+  `AmountIncludingVAT` DECIMAL NULL,
+  `AmountExcludedVAT` DECIMAL NULL,
+  `VatRegistration` VARCHAR(20) NULL,
+  `TransportMethod` VARCHAR(10) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `ExternalDocumentNo` VARCHAR(35) NULL,
+  `PaymentMethodCode` VARCHAR(10) NULL,
+  `SunatTable10` VARCHAR(20) NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `RelatedDocumentType` VARCHAR(20) NULL,
+  `RelatedDocumentDate` DATE NULL,
+  `ShippingAgentCode` VARCHAR(10) NULL,
+  `ShippingAgentServiceCode` VARCHAR(10) NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  `ShipToDepartament` VARCHAR(50) NULL,
+  `ShipToProvince` VARCHAR(50) NULL,
+  `ShipToDistrit` VARCHAR(50) NULL,
+  `ShipToCountryRegionCode` VARCHAR(10) NULL,
+  `ShipToPhoneNo` VARCHAR(50) NULL,
+  `TrackingNumber` VARCHAR(100) NULL,
+  `Status` TINYINT NULL,
+  `Balance` TINYINT NULL,
+  `Prepayment` TINYINT NULL,
+  `PrepaymentNoSeries` VARCHAR(20) NULL,
+  PRIMARY KEY (`DocumentType`, `No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `SellToCustomerNo_idx` (`SellToCustomerNo` ASC) VISIBLE,
+  INDEX `BillToCustomerNo_idx` (`BillToCustomerNo` ASC) VISIBLE,
+  INDEX `PaymentTermCode_idx` (`PaymentTermCode` ASC) VISIBLE,
+  INDEX `ShipmentMethodCode_idx` (`ShipmentMethodCode` ASC) VISIBLE,
+  INDEX `LocationCode_idx` (`LocationCode` ASC) VISIBLE,
+  INDEX `CurrencyCode_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `SalesPersonCode_idx` (`SalesPersonCode` ASC) VISIBLE,
+  INDEX `CountryRegionCode_idx` (`CountryRegionCode` ASC) VISIBLE,
+  INDEX `PaymentMethodCode_idx` (`PaymentMethodCode` ASC) VISIBLE,
+  INDEX `SunatTable10_idx` (`SunatTable10` ASC) VISIBLE,
+  INDEX `NoSeries_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `ShipToCountryRegionCode_SalesHdr_idx` (`ShipToCountryRegionCode` ASC) VISIBLE,
+  INDEX `PrepaymentNoSeries_SalesHdr_idx` (`PrepaymentNoSeries` ASC) VISIBLE,
+  CONSTRAINT `SellToCustomerNo_SalesHdr`
+    FOREIGN KEY (`SellToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BillToCustomerNo_SalesHdr`
+    FOREIGN KEY (`BillToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PaymentTermCode_SalesHdr`
+    FOREIGN KEY (`PaymentTermCode`)
+    REFERENCES `bdmele`.`TB_PaymentTerms` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ShipmentMethodCode_SalesHdr`
+    FOREIGN KEY (`ShipmentMethodCode`)
+    REFERENCES `bdmele`.`TB_ShipmetMethod` (`ShipmetMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_SalesHdr`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_SalesHdr`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SalesPersonCode_SalesHdr`
+    FOREIGN KEY (`SalesPersonCode`)
+    REFERENCES `bdmele`.`TB_SalesPersonPurch` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_SalesHdr`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PaymentMethodCode_SalesHdr`
+    FOREIGN KEY (`PaymentMethodCode`)
+    REFERENCES `bdmele`.`TB_PaymentMethod` (`PaymentMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SunatTable10_SalesHdr`
+    FOREIGN KEY (`SunatTable10`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_SalesHdr`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ShipToCountryRegionCode_SalesHdr`
+    FOREIGN KEY (`ShipToCountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PrepaymentNoSeries_SalesHdr`
+    FOREIGN KEY (`PrepaymentNoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_AttendanceSetup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_AttendanceSetup` (
+  `Code` INT NOT NULL,
+  `AttendanceSerieNo` VARCHAR(20) NOT NULL,
+  `ScheduleEnbled` TINYINT NULL,
+  PRIMARY KEY (`Code`),
+  INDEX `AttendanceSerieNoFK_idx` (`AttendanceSerieNo` ASC) VISIBLE,
+  CONSTRAINT `AttendanceSerieNoFK`
+    FOREIGN KEY (`AttendanceSerieNo`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesReceivablesSetup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesReceivablesSetup` (
+  `Code` INT NOT NULL,
+  `CreditWarnings` INT NULL,
+  `CustomerNos` VARCHAR(20) NULL,
+  `QuoteNos` VARCHAR(20) NULL,
+  `OrderNos` VARCHAR(20) NULL,
+  `InvoiceNos` VARCHAR(25) NULL,
+  `PostedInvoiceNos` VARCHAR(25) NULL,
+  `PrepaymentInvoiceNos` VARCHAR(20) NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_PurchasesPayablesSetup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_PurchasesPayablesSetup` (
+  `Code` INT NOT NULL,
+  `VendorNos` VARCHAR(20) NULL,
+  `QuoteNos` VARCHAR(20) NULL,
+  `OrderNos` VARCHAR(20) NULL,
+  `InvoiceNos` VARCHAR(20) NULL,
+  `PostedInvoiceNos` VARCHAR(20) NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Variants`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Variants` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(100) NULL,
+  `Title` VARCHAR(100) NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ItemVariant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ItemVariant` (
+  `Code` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(150) NULL,
+  `Description2` VARCHAR(150) NULL,
+  `Image` BLOB NULL,
+  `Blocked` TINYINT NULL,
+  `SalesBlocked` TINYINT NULL,
+  `PurchaseBlocked` TINYINT NULL,
+  `ItemNo` VARCHAR(20) NULL,
+  `VariantCode` VARCHAR(20) NULL,
+  PRIMARY KEY (`Code`),
+  INDEX `ItemNo_fk_idx` (`ItemNo` ASC) VISIBLE,
+  INDEX `VariantCode_fk_idx` (`VariantCode` ASC) VISIBLE,
+  CONSTRAINT `ItemNo_fk`
+    FOREIGN KEY (`ItemNo`)
+    REFERENCES `bdmele`.`TB_Item` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode_fk`
+    FOREIGN KEY (`VariantCode`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Bin`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Bin` (
+  `Code` VARCHAR(20) NOT NULL,
+  `LocationCode` VARCHAR(20) NOT NULL,
+  `Description` VARCHAR(150) NULL,
+  `ZoneCode` VARCHAR(10) NULL,
+  PRIMARY KEY (`Code`, `LocationCode`),
+  INDEX `LocationCode_Bin_idx` (`LocationCode` ASC) VISIBLE,
+  CONSTRAINT `LocationCode_Bin`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesLine`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesLine` (
+  `DocumentType` INT NOT NULL,
+  `DocumentNo` VARCHAR(20) NOT NULL,
+  `No` VARCHAR(20) NOT NULL,
+  `Line` INT NOT NULL,
+  `TypeOption` INT NULL,
+  `SellToCustomerNo` VARCHAR(20) NULL,
+  `LocationCode` VARCHAR(10) NULL,
+  `PostingGroup` VARCHAR(20) NULL,
+  `ShipmentDate` DATE NULL,
+  `Description` VARCHAR(100) NULL,
+  `Description2` VARCHAR(100) NULL,
+  `UnitOfMeasureCode` VARCHAR(10) NULL,
+  `Quantity` DECIMAL NULL,
+  `QtyToInvoice` DECIMAL NULL,
+  `QtytoShip` DECIMAL NULL,
+  `UnitPrice` DECIMAL NULL,
+  `UnitCost` DECIMAL NULL,
+  `VatPorcent` DECIMAL NULL,
+  `LineDiscountPorcent` DECIMAL NULL,
+  `LineDiscountAmount` DECIMAL NULL,
+  `Amount` DECIMAL NULL,
+  `AmountInclVat` DECIMAL NULL,
+  `AllowInvoiceDisc` DECIMAL NULL,
+  `GrossWeight` DECIMAL NULL,
+  `NetWeight` DECIMAL NULL,
+  `ShortcutDim1` VARCHAR(20) NULL,
+  `ShortcutDim2` VARCHAR(20) NULL,
+  `CustomerPriceGroup` VARCHAR(10) NULL,
+  `QtyShippedNotInvoice` DECIMAL NULL,
+  `ShippedNotInvoiced` DECIMAL NULL,
+  `QtyShipped` DECIMAL NULL,
+  `QtyInvoiced` DECIMAL NULL,
+  `ShipmentNo` VARCHAR(20) NULL,
+  `ShipmentLineNo` VARCHAR(20) NULL,
+  `BillToCustomerNo` VARCHAR(20) NULL,
+  `InvDiscountAmount` DECIMAL NULL,
+  `GenBusPostingGroup` VARCHAR(20) NULL,
+  `GenProdPostingGroup` VARCHAR(20) NULL,
+  `TransportMethod` VARCHAR(10) NULL,
+  `VatBusPostingGroup` VARCHAR(20) NULL,
+  `VatProdPostingGroup` VARCHAR(20) NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `VatBaseAmount` DECIMAL NULL,
+  `LineAmount` DECIMAL NULL,
+  `PrepaymentPorcent` DECIMAL NULL,
+  `PrepmtLineAmount` DECIMAL NULL,
+  `PrepmtAmountInv` DECIMAL NULL,
+  `PrepmtAmountInclVat` DECIMAL NULL,
+  `PrepaymentAmount` DECIMAL NULL,
+  `PrepmtVatBaseAmount` DECIMAL NULL,
+  `PrepmtVatPortcent` DECIMAL NULL,
+  `PrepaymentLine` DECIMAL NULL,
+  `DimensioSetID` INT NULL,
+  `PostingDate` DATETIME NULL,
+  `VariantCode` VARCHAR(10) NULL,
+  `BinCode` VARCHAR(20) NULL,
+  `QuantityBase` DECIMAL NULL,
+  `ItemCategoryCode` VARCHAR(20) NULL,
+  `PlannedDelivery` DATETIME NULL,
+  `PlannedShipment` DATETIME NULL,
+  `ShippingAgentCode` VARCHAR(10) NULL,
+  `ShippingAgentServiceCode` VARCHAR(10) NULL,
+  `BOMItemNo` VARCHAR(20) NULL,
+  `DueDate` DATETIME NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  `VariantCode2` VARCHAR(10) NULL,
+  `VariantCode3` VARCHAR(10) NULL,
+  PRIMARY KEY (`DocumentType`, `DocumentNo`, `No`, `Line`),
+  INDEX `SellToCustomerNo_SalesLine_idx` (`SellToCustomerNo` ASC) VISIBLE,
+  INDEX `LocationCode_SalesLine_idx` (`LocationCode` ASC) VISIBLE,
+  INDEX `UnitOfMeasureCode_SalesLine_idx` (`UnitOfMeasureCode` ASC) VISIBLE,
+  INDEX `BillToCustomerNo_SalesLine_idx` (`BillToCustomerNo` ASC) VISIBLE,
+  INDEX `CurrencyCode_SalesLine_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `VariantCode_SalesLine_idx` (`VariantCode` ASC) VISIBLE,
+  INDEX `ItemCategoryCode_SalesLine_idx` (`ItemCategoryCode` ASC) VISIBLE,
+  INDEX `SystemCreateBy_SaleLine_idx` (`SystemCreateBy` ASC) VISIBLE,
+  INDEX `SystemModifiedBy_SalesLine_idx` (`SystemModifiedBy` ASC) VISIBLE,
+  INDEX `BinCode_SalesLine_idx` (`BinCode` ASC) VISIBLE,
+  INDEX `VariantCode2_SalesLine_idx` (`VariantCode2` ASC) VISIBLE,
+  INDEX `VariantCode3_SalesLine_idx` (`VariantCode3` ASC) VISIBLE,
+  CONSTRAINT `SellToCustomerNo_SalesLine`
+    FOREIGN KEY (`SellToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_SalesLine`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UnitOfMeasureCode_SalesLine`
+    FOREIGN KEY (`UnitOfMeasureCode`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BillToCustomerNo_SalesLine`
+    FOREIGN KEY (`BillToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_SalesLine`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode_SalesLine`
+    FOREIGN KEY (`VariantCode`)
+    REFERENCES `bdmele`.`TB_ItemVariant` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ItemCategoryCode_SalesLine`
+    FOREIGN KEY (`ItemCategoryCode`)
+    REFERENCES `bdmele`.`TB_ItemCategory` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemCreateBy_SaleLine`
+    FOREIGN KEY (`SystemCreateBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemModifiedBy_SalesLine`
+    FOREIGN KEY (`SystemModifiedBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BinCode_SalesLine`
+    FOREIGN KEY (`BinCode`)
+    REFERENCES `bdmele`.`TB_Bin` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode2_SalesLine`
+    FOREIGN KEY (`VariantCode2`)
+    REFERENCES `bdmele`.`TB_ItemVariant` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode3_SalesLine`
+    FOREIGN KEY (`VariantCode3`)
+    REFERENCES `bdmele`.`TB_ItemVariant` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ShippingAgent`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ShippingAgent` (
+  `Code` VARCHAR(10) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `InternetAddres` VARCHAR(250) NULL,
+  PRIMARY KEY (`Code`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ShippingAgentServices`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ShippingAgentServices` (
+  `Code` VARCHAR(10) NOT NULL,
+  `ShippingAgentCode` VARCHAR(10) NULL,
+  `Description` VARCHAR(150) NULL,
+  PRIMARY KEY (`Code`),
+  INDEX `ShippingAgentCode_ShippingAgent_idx` (`ShippingAgentCode` ASC) VISIBLE,
+  CONSTRAINT `ShippingAgentCode_ShippingAgent`
+    FOREIGN KEY (`ShippingAgentCode`)
+    REFERENCES `bdmele`.`TB_ShippingAgent` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_InventorySetup`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_InventorySetup` (
+  `Code` INT NOT NULL,
+  `LocationMandatory` TINYINT NULL,
+  `ItemNos` VARCHAR(20) NULL,
+  `VariantCode1` VARCHAR(20) NULL,
+  `VariantCode2` VARCHAR(20) NULL,
+  `VariantCode3` VARCHAR(20) NULL,
+  PRIMARY KEY (`Code`),
+  INDEX `VariantCode1_fk_idx` (`VariantCode1` ASC) VISIBLE,
+  INDEX `VariantCode2_fk_idx` (`VariantCode2` ASC) VISIBLE,
+  INDEX `VariantCode3_fk_idx` (`VariantCode3` ASC) VISIBLE,
+  CONSTRAINT `VariantCode1_fk`
+    FOREIGN KEY (`VariantCode1`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode2_fk`
+    FOREIGN KEY (`VariantCode2`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode3_fk`
+    FOREIGN KEY (`VariantCode3`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_Contact`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_Contact` (
+  `No` VARCHAR(20) NOT NULL,
+  `Names` VARCHAR(100) NULL,
+  `SearchName` VARCHAR(100) NULL,
+  `Type` TINYINT NULL,
+  `SalesPersonPurchCode` VARCHAR(20) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `Departament` VARCHAR(50) NULL,
+  `Province` VARCHAR(50) NULL,
+  `Distrit` VARCHAR(50) NULL,
+  `Address` VARCHAR(100) NULL,
+  `Phone` VARCHAR(50) NULL,
+  `Email` VARCHAR(100) NULL,
+  `Blocked` TINYINT NULL,
+  PRIMARY KEY (`No`),
+  INDEX `SalesPersonPurch_fk_idx` (`SalesPersonPurchCode` ASC) INVISIBLE,
+  INDEX `CountryRegion_Contactfk_idx` (`CountryRegionCode` ASC) VISIBLE,
+  CONSTRAINT `SalesPersonPurch_Contactfk`
+    FOREIGN KEY (`SalesPersonPurchCode`)
+    REFERENCES `bdmele`.`TB_SalesPersonPurch` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegion_Contactfk`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesInvoiceHeader`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesInvoiceHeader` (
+  `No` VARCHAR(20) NOT NULL,
+  `SellToCustomerNo` VARCHAR(20) NOT NULL,
+  `BillToCustomerNo` VARCHAR(20) NULL,
+  `YourReference` VARCHAR(50) NULL,
+  `ShipToCode` VARCHAR(10) NULL,
+  `ShipToName` VARCHAR(100) NULL,
+  `ShipToName2` VARCHAR(100) NULL,
+  `ShipToAddress` VARCHAR(100) NULL,
+  `ShipToAddress2` VARCHAR(100) NULL,
+  `ShipToCity` VARCHAR(30) NULL,
+  `ShipToContact` VARCHAR(100) NULL,
+  `OrderDate` DATE NULL,
+  `PostingDate` DATE NULL,
+  `Documentdate` DATE NULL,
+  `ShipmentDate` DATE NULL,
+  `DueDate` DATE NULL,
+  `PostingDescription` VARCHAR(100) NULL,
+  `PaymentTermCode` VARCHAR(10) NULL,
+  `ShipmentMethodCode` VARCHAR(10) NULL,
+  `LocationCode` VARCHAR(10) NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `CurrencyFactor` DECIMAL NULL,
+  `SalesPersonCode` VARCHAR(20) NULL,
+  `AmountIncludingVAT` DECIMAL NULL,
+  `AmountExcludedVAT` DECIMAL NULL,
+  `VatRegistration` VARCHAR(20) NULL,
+  `TransportMethod` VARCHAR(10) NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `ExternalDocumentNo` VARCHAR(35) NULL,
+  `PaymentMethodCode` VARCHAR(10) NULL,
+  `SunatTable10` VARCHAR(20) NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `RelatedDocumentType` VARCHAR(20) NULL,
+  `RelatedDocumentDate` DATE NULL,
+  `ShippingAgentCode` VARCHAR(10) NULL,
+  `ShippingAgentServiceCode` VARCHAR(10) NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  `ShipToDepartament` VARCHAR(50) NULL,
+  `ShipToProvince` VARCHAR(50) NULL,
+  `ShipToDistrit` VARCHAR(50) NULL,
+  `ShipToCountryRegionCode` VARCHAR(10) NULL,
+  `ShipToPhoneNo` VARCHAR(50) NULL,
+  `TrackingNumber` VARCHAR(100) NULL,
+  `Status` TINYINT NULL,
+  `Balance` TINYINT NULL,
+  `Prepayment` TINYINT NULL,
+  `PrepaymentNoSeries` VARCHAR(20) NULL,
+  `SalesOrderNo` VARCHAR(20) NULL,
+  PRIMARY KEY (`No`),
+  UNIQUE INDEX `No_UNIQUE` (`No` ASC) VISIBLE,
+  INDEX `SellToCustomerNo_SalesInvoice_idx` (`SellToCustomerNo` ASC) VISIBLE,
+  INDEX `PaymentTermCode_SalesInvoice_idx` (`PaymentTermCode` ASC) VISIBLE,
+  INDEX `ShipmentMethodCode_SalesInvoice_idx` (`ShipmentMethodCode` ASC) VISIBLE,
+  INDEX `LocationCode_SalesInvoice_idx` (`LocationCode` ASC) VISIBLE,
+  INDEX `CurrencyCode_SalesInvoice_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `SalesPersonCode_SalesInvoice_idx` (`SalesPersonCode` ASC) VISIBLE,
+  INDEX `CountryRegionCode_SalesInvoice_idx` (`CountryRegionCode` ASC) VISIBLE,
+  INDEX `PaymentMethodCode_SalesInvoice_idx` (`PaymentMethodCode` ASC) VISIBLE,
+  INDEX `SunatTable10_SalesInvoice_idx` (`SunatTable10` ASC) VISIBLE,
+  INDEX `NoSeries_SalesInvoice_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `ShipToCountryRegionCode_SalesInvoice_idx` (`ShipToCountryRegionCode` ASC) VISIBLE,
+  INDEX `PrepaymentNoSeries_SalesInvoice_idx` (`PrepaymentNoSeries` ASC) VISIBLE,
+  INDEX `BillToCustomerNo_SalesInvoice_idx` (`BillToCustomerNo` ASC) VISIBLE,
+  CONSTRAINT `SellToCustomerNo_SalesInvoice`
+    FOREIGN KEY (`SellToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BillToCustomerNo_SalesInvoice`
+    FOREIGN KEY (`BillToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PaymentTermCode_SalesInvoice`
+    FOREIGN KEY (`PaymentTermCode`)
+    REFERENCES `bdmele`.`TB_PaymentTerms` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ShipmentMethodCode_SalesInvoice`
+    FOREIGN KEY (`ShipmentMethodCode`)
+    REFERENCES `bdmele`.`TB_ShipmetMethod` (`ShipmetMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_SalesInvoice`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_SalesInvoice`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SalesPersonCode_SalesInvoice`
+    FOREIGN KEY (`SalesPersonCode`)
+    REFERENCES `bdmele`.`TB_SalesPersonPurch` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_SalesInvoice`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PaymentMethodCode_SalesInvoice`
+    FOREIGN KEY (`PaymentMethodCode`)
+    REFERENCES `bdmele`.`TB_PaymentMethod` (`PaymentMethodCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SunatTable10_SalesInvoice`
+    FOREIGN KEY (`SunatTable10`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_SalesInvoice`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ShipToCountryRegionCode_SalesInvoice`
+    FOREIGN KEY (`ShipToCountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `PrepaymentNoSeries_SalesInvoice`
+    FOREIGN KEY (`PrepaymentNoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_SalesInvoiceLine`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_SalesInvoiceLine` (
+  `DocumentNo` VARCHAR(20) NOT NULL,
+  `No` VARCHAR(20) NOT NULL,
+  `Line` INT NOT NULL,
+  `TypeOption` INT NULL,
+  `SellToCustomerNo` VARCHAR(20) NULL,
+  `LocationCode` VARCHAR(10) NULL,
+  `PostingGroup` VARCHAR(20) NULL,
+  `ShipmentDate` DATE NULL,
+  `Description` VARCHAR(100) NULL,
+  `Description2` VARCHAR(100) NULL,
+  `UnitOfMeasureCode` VARCHAR(10) NULL,
+  `Quantity` DECIMAL NULL,
+  `UnitPrice` DECIMAL NULL,
+  `UnitCost` DECIMAL NULL,
+  `VatPorcent` DECIMAL NULL,
+  `LineDiscountPorcent` DECIMAL NULL,
+  `LineDiscountAmount` DECIMAL NULL,
+  `Amount` DECIMAL NULL,
+  `AmountInclVat` DECIMAL NULL,
+  `AllowInvoiceDisc` DECIMAL NULL,
+  `GrossWeight` DECIMAL NULL,
+  `NetWeight` DECIMAL NULL,
+  `ShortcutDim1` VARCHAR(20) NULL,
+  `ShortcutDim2` VARCHAR(20) NULL,
+  `CustomerPriceGroup` VARCHAR(10) NULL,
+  `ShipmentNo` VARCHAR(20) NULL,
+  `ShipmentLineNo` VARCHAR(20) NULL,
+  `BillToCustomerNo` VARCHAR(20) NULL,
+  `InvDiscountAmount` DECIMAL NULL,
+  `GenBusPostingGroup` VARCHAR(20) NULL,
+  `GenProdPostingGroup` VARCHAR(20) NULL,
+  `TransportMethod` VARCHAR(10) NULL,
+  `VatBusPostingGroup` VARCHAR(20) NULL,
+  `VatProdPostingGroup` VARCHAR(20) NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `VatBaseAmount` DECIMAL NULL,
+  `LineAmount` DECIMAL NULL,
+  `PrepaymentPorcent` DECIMAL NULL,
+  `PrepmtLineAmount` DECIMAL NULL,
+  `PrepmtAmountInv` DECIMAL NULL,
+  `PrepmtAmountInclVat` DECIMAL NULL,
+  `PrepaymentAmount` DECIMAL NULL,
+  `PrepmtVatBaseAmount` DECIMAL NULL,
+  `PrepmtVatPortcent` DECIMAL NULL,
+  `PrepaymentLine` DECIMAL NULL,
+  `DimensioSetID` INT NULL,
+  `PostingDate` DATETIME NULL,
+  `VariantCode` VARCHAR(10) NULL,
+  `BinCode` VARCHAR(20) NULL,
+  `QuantityBase` DECIMAL NULL,
+  `ItemCategoryCode` VARCHAR(20) NULL,
+  `PlannedDelivery` DATETIME NULL,
+  `PlannedShipment` DATETIME NULL,
+  `ShippingAgentCode` VARCHAR(10) NULL,
+  `ShippingAgentServiceCode` VARCHAR(10) NULL,
+  `BOMItemNo` VARCHAR(20) NULL,
+  `DueDate` DATETIME NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  `VariantCode2` VARCHAR(10) NULL,
+  `VariantCode3` VARCHAR(10) NULL,
+  PRIMARY KEY (`DocumentNo`, `No`, `Line`),
+  INDEX `SellToCustomerNo_SalesInvoiceLine_idx` (`SellToCustomerNo` ASC) VISIBLE,
+  INDEX `LocationCode_SalesInvoiceLine_idx` (`LocationCode` ASC) VISIBLE,
+  INDEX `UnitOfMeasureCode_SalesInvoiceLine_idx` (`UnitOfMeasureCode` ASC) VISIBLE,
+  INDEX `BillToCustomerNo_SalesInvoiceLine_idx` (`BillToCustomerNo` ASC) VISIBLE,
+  INDEX `CurrencyCode_SalesInvoiceLine_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `VariantCode_SalesInvoiceLien_idx` (`VariantCode` ASC) VISIBLE,
+  INDEX `BinCode_SalesInvoiceLine_idx` (`BinCode` ASC) VISIBLE,
+  INDEX `ItemCategoryCode_SalesInvoiceLine_idx` (`ItemCategoryCode` ASC) VISIBLE,
+  INDEX `SystemCreateBy_SalesInvoiceLine_idx` (`SystemCreateBy` ASC) VISIBLE,
+  INDEX `SystemModifiedBy_SalesInvoiceLine_idx` (`SystemModifiedBy` ASC) VISIBLE,
+  INDEX `VariantCode2_SalesInvoiceLine_idx` (`VariantCode2` ASC) VISIBLE,
+  INDEX `VariantCode3_SalesInvoiceLine_idx` (`VariantCode3` ASC) VISIBLE,
+  CONSTRAINT `SellToCustomerNo_SalesInvoiceLine`
+    FOREIGN KEY (`SellToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_SalesInvoiceLine`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UnitOfMeasureCode_SalesInvoiceLine`
+    FOREIGN KEY (`UnitOfMeasureCode`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BillToCustomerNo_SalesInvoiceLine`
+    FOREIGN KEY (`BillToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_SalesInvoiceLine`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode_SalesInvoiceLien`
+    FOREIGN KEY (`VariantCode`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `BinCode_SalesInvoiceLine`
+    FOREIGN KEY (`BinCode`)
+    REFERENCES `bdmele`.`TB_Bin` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ItemCategoryCode_SalesInvoiceLine`
+    FOREIGN KEY (`ItemCategoryCode`)
+    REFERENCES `bdmele`.`TB_ItemCategory` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemCreateBy_SalesInvoiceLine`
+    FOREIGN KEY (`SystemCreateBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemModifiedBy_SalesInvoiceLine`
+    FOREIGN KEY (`SystemModifiedBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode2_SalesInvoiceLine`
+    FOREIGN KEY (`VariantCode2`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode3_SalesInvoiceLine`
+    FOREIGN KEY (`VariantCode3`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `DocumentNo_SalesInvoiceLine`
+    FOREIGN KEY (`DocumentNo`)
+    REFERENCES `bdmele`.`TB_SalesInvoiceHeader` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_CustomerLedgerEntry`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_CustomerLedgerEntry` (
+  `EntryNo` INT NOT NULL,
+  `CustomerNo` VARCHAR(20) NULL,
+  `DocumentType` INT NULL,
+  `PostingDate` DATE NULL,
+  `DocumentNo` VARCHAR(20) NULL,
+  `Description` VARCHAR(100) NULL,
+  `Description2` VARCHAR(100) NULL,
+  `CustomerName` VARCHAR(100) NULL,
+  `YourReference` VARCHAR(35) NULL,
+  `CurrencyCode` VARCHAR(10) NULL,
+  `Amount` DECIMAL NULL,
+  `RemainingAmount` DECIMAL NULL,
+  `AmountLCY` DECIMAL NULL,
+  `RemainingAmountLCY` DECIMAL NULL,
+  `SellToCustomerNo` VARCHAR(20) NULL,
+  `CustomerPostingGroup` VARCHAR(20) NULL,
+  `ShortcutDim1` VARCHAR(20) NULL,
+  `ShortcutDim2` VARCHAR(20) NULL,
+  `SalesPersonCode` VARCHAR(20) NULL,
+  `UserID` VARCHAR(20) NULL,
+  `SourceCode` VARCHAR(20) NULL,
+  `Open` TINYINT NULL,
+  `DueDate` DATE NULL,
+  `Positive` TINYINT NULL,
+  `AppliesToID` VARCHAR(50) NULL,
+  `JournalTemplName` VARCHAR(10) NULL,
+  `JournalBatchName` VARCHAR(10) NULL,
+  `TransactionNo` INT NULL,
+  `DocumentDate` DATE NULL,
+  `ExternalDocumentNo` VARCHAR(45) NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `OriginalAmount` DECIMAL NULL,
+  `SunatTable10` VARCHAR(20) NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  PRIMARY KEY (`EntryNo`),
+  UNIQUE INDEX `EntryNo_UNIQUE` (`EntryNo` ASC) VISIBLE,
+  INDEX `CustomerNo_CustledEntries_idx` (`CustomerNo` ASC) VISIBLE,
+  INDEX `CurrencyCode_CustLedEntries_idx` (`CurrencyCode` ASC) VISIBLE,
+  INDEX `SellToCustomerNo_CustLedEntries_idx` (`SellToCustomerNo` ASC) VISIBLE,
+  INDEX `CustomerPostingGroup_CustLedEntries_idx` (`CustomerPostingGroup` ASC) VISIBLE,
+  INDEX `SalesPersonCode_CustLedEntries_idx` (`SalesPersonCode` ASC) VISIBLE,
+  INDEX `UserID_CustLedEntries_idx` (`UserID` ASC) VISIBLE,
+  INDEX `NoSeries_CustLedEntries_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `SunatTable10_CustLedEntries_idx` (`SunatTable10` ASC) VISIBLE,
+  INDEX `SystemCreateBy_CustLedEntries_idx` (`SystemCreateBy` ASC) VISIBLE,
+  INDEX `SystemModifiedBy_CustLedEntries_idx` (`SystemModifiedBy` ASC) VISIBLE,
+  CONSTRAINT `CustomerNo_CustLedEntries`
+    FOREIGN KEY (`CustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CurrencyCode_CustLedEntries`
+    FOREIGN KEY (`CurrencyCode`)
+    REFERENCES `bdmele`.`TB_Currency` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SellToCustomerNo_CustLedEntries`
+    FOREIGN KEY (`SellToCustomerNo`)
+    REFERENCES `bdmele`.`TB_Customer` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CustomerPostingGroup_CustLedEntries`
+    FOREIGN KEY (`CustomerPostingGroup`)
+    REFERENCES `bdmele`.`TB_CustomerPostingGroup` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SalesPersonCode_CustLedEntries`
+    FOREIGN KEY (`SalesPersonCode`)
+    REFERENCES `bdmele`.`TB_SalesPersonPurch` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UserID_CustLedEntries`
+    FOREIGN KEY (`UserID`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_CustLedEntries`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SunatTable10_CustLedEntries`
+    FOREIGN KEY (`SunatTable10`)
+    REFERENCES `bdmele`.`TB_ConfigValueTable` (`ValueCode`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemCreateBy_CustLedEntries`
+    FOREIGN KEY (`SystemCreateBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemModifiedBy_CustLedEntries`
+    FOREIGN KEY (`SystemModifiedBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bdmele`.`TB_ItemLedgerEntry`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bdmele`.`TB_ItemLedgerEntry` (
+  `EntryNo` INT NOT NULL,
+  `ItemNo` VARCHAR(20) NULL,
+  `PostingDate` DATE NULL,
+  `EntryType` INT NULL,
+  `SourceNo` VARCHAR(20) NULL,
+  `DocumentNo` VARCHAR(20) NULL,
+  `Description` VARCHAR(100) NULL,
+  `LocationCode` VARCHAR(20) NULL,
+  `Quantity` DECIMAL NULL,
+  `RemainingQuantity` DECIMAL NULL,
+  `InvoicedQuantity` DECIMAL NULL,
+  `Open` TINYINT NULL,
+  `Positive` TINYINT NULL,
+  `ShortcutDim1` VARCHAR(20) NULL,
+  `DocumentDate` DATE NULL,
+  `NoSeries` VARCHAR(20) NULL,
+  `DocumentType` TINYINT NULL,
+  `DocumentLineNo` INT NULL,
+  `ShortcutDim2` VARCHAR(20) NULL,
+  `VariantCode` VARCHAR(10) NULL,
+  `VariantCode2` VARCHAR(10) NULL,
+  `VariantCode3` VARCHAR(10) NULL,
+  `QtyperUnitOfMeasure` DECIMAL NULL,
+  `UnitOfMeasureCode` VARCHAR(10) NULL,
+  `ItemCategoryCode` VARCHAR(20) NULL,
+  `ItemReferenceNo` VARCHAR(50) NULL,
+  `CostAmount` DECIMAL NULL,
+  `SalesAmount` DECIMAL NULL,
+  `SystemCreate` DATETIME NULL,
+  `SystemCreateBy` VARCHAR(20) NULL,
+  `SystemModified` DATETIME NULL,
+  `SystemModifiedBy` VARCHAR(20) NULL,
+  `SourceType` TINYINT NULL,
+  `CountryRegionCode` VARCHAR(10) NULL,
+  `ExternalDocumentNo` VARCHAR(35) NULL,
+  UNIQUE INDEX `EntryNo_UNIQUE` (`EntryNo` ASC) VISIBLE,
+  PRIMARY KEY (`EntryNo`),
+  INDEX `ItemNo_ItemLedEntry_idx` (`ItemNo` ASC) VISIBLE,
+  INDEX `LocationCode_ItemLedEntry_idx` (`LocationCode` ASC) VISIBLE,
+  INDEX `NoSeries_ItemLedEntry_idx` (`NoSeries` ASC) VISIBLE,
+  INDEX `VariantCode_ItemLedEntry_idx` (`VariantCode` ASC) VISIBLE,
+  INDEX `VariantCode2_ItemLedEntry_idx` (`VariantCode2` ASC) VISIBLE,
+  INDEX `VariantCode3_ItemLedEntry_idx` (`VariantCode3` ASC) VISIBLE,
+  INDEX `UnitOfMeasureCode_ItemLedEntry_idx` (`UnitOfMeasureCode` ASC) VISIBLE,
+  INDEX `ItemCategoryCode_ItemLedEntry_idx` (`ItemCategoryCode` ASC) VISIBLE,
+  INDEX `SystemCreateBy_ItemLedEntry_idx` (`SystemCreateBy` ASC) VISIBLE,
+  INDEX `SystemModifiedBy_ItemLedEntry_idx` (`SystemModifiedBy` ASC) VISIBLE,
+  INDEX `CountryRegionCode_ItemLedEntry_idx` (`CountryRegionCode` ASC) VISIBLE,
+  CONSTRAINT `ItemNo_ItemLedEntry`
+    FOREIGN KEY (`ItemNo`)
+    REFERENCES `bdmele`.`TB_Item` (`No`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `LocationCode_ItemLedEntry`
+    FOREIGN KEY (`LocationCode`)
+    REFERENCES `bdmele`.`TB_Location` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `NoSeries_ItemLedEntry`
+    FOREIGN KEY (`NoSeries`)
+    REFERENCES `bdmele`.`TB_NoSerie` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode_ItemLedEntry`
+    FOREIGN KEY (`VariantCode`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode2_ItemLedEntry`
+    FOREIGN KEY (`VariantCode2`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `VariantCode3_ItemLedEntry`
+    FOREIGN KEY (`VariantCode3`)
+    REFERENCES `bdmele`.`TB_Variants` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `UnitOfMeasureCode_ItemLedEntry`
+    FOREIGN KEY (`UnitOfMeasureCode`)
+    REFERENCES `bdmele`.`TB_UnitOfMeasure` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `ItemCategoryCode_ItemLedEntry`
+    FOREIGN KEY (`ItemCategoryCode`)
+    REFERENCES `bdmele`.`TB_ItemCategory` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemCreateBy_ItemLedEntry`
+    FOREIGN KEY (`SystemCreateBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `SystemModifiedBy_ItemLedEntry`
+    FOREIGN KEY (`SystemModifiedBy`)
+    REFERENCES `bdmele`.`TB_UserSetup` (`UserID`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `CountryRegionCode_ItemLedEntry`
+    FOREIGN KEY (`CountryRegionCode`)
+    REFERENCES `bdmele`.`TB_CountryRegion` (`Code`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
